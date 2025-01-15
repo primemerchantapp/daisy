@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Documents</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        h2 { border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .document-container { margin-bottom: 20px; border: 1px solid #ddd; padding: 15px; border-radius: 5px; background-color: #f9f9f9; }
+        .document-container h3 { margin-top: 0; }
+        .log-entry {
+            padding: 5px;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9em;
+        }
+         .log-entry .timestamp {
+            color: #777;
+            margin-right: 5px;
+        }
+
+        .log-entry.system .emoji { color: #888; }
+        .log-entry.user .emoji { color: #2e7d32; }
+        .log-entry.ai .emoji { color: #1565c0; }
+    </style>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+</head>
+<body>
+    <h2>Scribe Documents</h2>
+    <div id="scribe-documents-container">
+     
+    </div>
+
+    <h2>Diagnostic Reports</h2>
+     <div id="diagnostic-reports-container">
+    </div>
+
+      <h2>Logs</h2>
+    <div class="logs-wrapper">
+        <div id="logs-container"></div>
+        <button id="toggle-logs" class="material-icons">expand_less</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js';
+        import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js';
+         const logsContainer = document.getElementById('logs-container');
+        const toggleLogs = document.getElementById('toggle-logs');
+          const logsWrapper = document.querySelector('.logs-wrapper');
+           // Logs collapse/expand
+        toggleLogs.addEventListener('click', () => {
+            logsWrapper.classList.toggle('collapsed');
+            toggleLogs.textContent = logsWrapper.classList.contains('collapsed') ? 'expand_more' : 'expand_less';
+        });
+
+        // Collapse logs by default on mobile
+        function handleMobileView() {
+            if (window.innerWidth <= 768) {
+                logsWrapper.classList.add('collapsed');
+                toggleLogs.textContent = 'expand_more';
+            } else {
+                logsWrapper.classList.remove('collapsed');
+                toggleLogs.textContent = 'expand_less';
+            }
+        }
+
+          // Listen for window resize
+        window.addEventListener('resize', handleMobileView);
+        // Initial check
+         handleMobileView();
+
+    // Initialize Firebase
+    const firebaseConfig = {
+          apiKey: "AIzaSyDTsjYZNWFfZOESP-2QQfbD7jc5fG9FJdc",
+        authDomain: "explore-malaysia-6d28d.firebaseapp.com",
+        databaseURL: "https://explore-malaysia-6d28d-default-rtdb.asia-southeast1.firebasedatabase.app",
+         projectId: "explore-malaysia-6d28d",
+          storageBucket: "explore-malaysia-6d28d.appspot.com",
+        messagingSenderId: "869053244601",
+        appId: "1:869053244601:web:79ddd74f5bd792a10be768",
+        measurementId: "G-9W4D5NM49R"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const scribeDocsContainer = document.getElementById('scribe-documents-container');
+     const diagnosticReportsContainer = document.getElementById('diagnostic-reports-container');
+      /**
+        * Logs a message to the UI.
+        * @param {string} message - The message to log.
+        * @param {string} [type='system'] - The type of the message (system, user, ai).
+    */
+     function logMessage(message, type = 'system') {
+            const logEntry = document.createElement('div');
+            logEntry.classList.add('log-entry', type);
+
+            const timestamp = document.createElement('span');
+            timestamp.classList.add('timestamp');
+            timestamp.textContent = new Date().toLocaleTimeString();
+            logEntry.appendChild(timestamp);
+
+            const emoji = document.createElement('span');
+            emoji.classList.add('emoji');
+            switch (type) {
+                case 'system':
+                    emoji.textContent = '⚙️';
+                    break;
+                case 'user':
+                    emoji.textContent = '🫵';
+                    break;
+                case 'ai':
+                    emoji.textContent = '🤖';
+                    break;
+            }
+            logEntry.appendChild(emoji);
+
+            const messageText = document.createElement('span');
+            messageText.textContent = message;
+            logEntry.appendChild(messageText);
+
+            logsContainer.appendChild(logEntry);
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+        }
+
+    async function fetchScribeDocuments() {
+         try {
+            const querySnapshot = await getDocs(collection(db, 'medicaldocument'));
+            querySnapshot.forEach((doc) => {
+                const docData = doc.data();
+                  logMessage(`Fetched scribe document with ID: ${doc.id}`, 'system');
+                const documentDiv = document.createElement('div');
+                documentDiv.classList.add('document-container');
+                documentDiv.innerHTML = `
+                    <h3>Document ID: ${doc.id}</h3>
+                    <p><strong>Patient Name:</strong> ${docData.patientName}</p>
+                    <p><strong>Date of Visit:</strong> ${new Date(docData.dateOfVisit).toLocaleDateString()}</p>
+                     <p><strong>Provider Name:</strong> ${docData.providerName}</p>
+                    <p><strong>Facility:</strong> ${docData.facility}</p>
+                    <p><strong>Medical History:</strong> ${docData.medicalHistory.join(', ')}</p>
+                     <p><strong>Allergies:</strong> ${docData.allergies.join(', ')}</p>
+                     <p><strong>Diagnosis:</strong> ${docData.diagnosis.map(diag => `${diag.condition} (${diag.icdCode})`).join(', ')}</p>
+                    <p><strong>Plan:</strong><pre>${docData.plan}</pre></p>
+                    <p><strong>Content:</strong><pre>${docData.content}</pre></p>
+                `;
+                  scribeDocsContainer.appendChild(documentDiv);
+            });
+        } catch (error) {
+           logMessage(`Error fetching scribe documents: ${error.message}`, 'system');
+              console.error('Error fetching scribe documents:', error);
+        }
+    }
+
+
+     async function fetchDiagnosticReports() {
+        try {
+            const querySnapshot = await getDocs(collection(db, 'diagnosticReport'));
+            querySnapshot.forEach((doc) => {
+                const docData = doc.data();
+                 logMessage(`Fetched diagnostic report with ID: ${doc.id}`, 'system');
+                const reportDiv = document.createElement('div');
+                reportDiv.classList.add('document-container');
+                reportDiv.innerHTML = `
+                    <h3>Report ID: ${doc.id}</h3>
+                     <p><strong>Physician:</strong> ${docData.physician}</p>
+                      <p><strong>Facility:</strong> ${docData.facility}</p>
+                    <p><strong>Patient Name:</strong> ${docData.patientDetails.name}</p>
+                    <p><strong>Patient Age:</strong> ${docData.patientDetails.age}</p>
+                      <p><strong>Gender:</strong> ${docData.patientDetails.gender}</p>
+                      <p><strong>Medical History:</strong> ${docData.patientDetails.medicalHistory.join(', ')}</p>
+                     <p><strong>Tests Conducted:</strong></p>
+                    <ul>
+                        ${docData.testsConducted.map(test => `<li><strong>${test.name}:</strong> ${test.results}</li>`).join('')}
+                   </ul>
+                      <p><strong>Impression:</strong> ${docData.impression}</p>
+                    <p><strong>Recommendations:</strong><ul>${docData.recommendations.map(rec => `<li>${rec}</li>`).join('')}</ul></p>
+                    <p><strong>Date Generated:</strong> ${new Date(docData.dateGenerated).toLocaleDateString()}</p>
+                    
+                `;
+                 diagnosticReportsContainer.appendChild(reportDiv);
+            });
+         } catch (error) {
+              logMessage(`Error fetching diagnostic reports: ${error.message}`, 'system');
+              console.error('Error fetching diagnostic reports:', error);
+        }
+    }
+        fetchScribeDocuments();
+        fetchDiagnosticReports();
+    </script>
+</body>
+</html>
