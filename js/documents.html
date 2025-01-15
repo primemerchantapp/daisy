@@ -125,32 +125,32 @@
         }
 
     async function fetchScribeDocuments() {
-         try {
-            const querySnapshot = await getDocs(collection(db, 'medicaldocument'));
-            querySnapshot.forEach((doc) => {
-                const docData = doc.data();
-                  logMessage(`Fetched scribe document with ID: ${doc.id}`, 'system');
-                const documentDiv = document.createElement('div');
-                documentDiv.classList.add('document-container');
-                documentDiv.innerHTML = `
-                    <h3>Document ID: ${doc.id}</h3>
-                    <p><strong>Patient Name:</strong> ${docData.patientName}</p>
-                    <p><strong>Date of Visit:</strong> ${new Date(docData.dateOfVisit).toLocaleDateString()}</p>
-                     <p><strong>Provider Name:</strong> ${docData.providerName}</p>
-                    <p><strong>Facility:</strong> ${docData.facility}</p>
-                    <p><strong>Medical History:</strong> ${docData.medicalHistory.join(', ')}</p>
-                     <p><strong>Allergies:</strong> ${docData.allergies.join(', ')}</p>
-                     <p><strong>Diagnosis:</strong> ${docData.diagnosis.map(diag => `${diag.condition} (${diag.icdCode})`).join(', ')}</p>
-                    <p><strong>Plan:</strong><pre>${docData.plan}</pre></p>
-                    <p><strong>Content:</strong><pre>${docData.content}</pre></p>
-                `;
-                  scribeDocsContainer.appendChild(documentDiv);
-            });
-        } catch (error) {
-           logMessage(`Error fetching scribe documents: ${error.message}`, 'system');
-              console.error('Error fetching scribe documents:', error);
-        }
+    try {
+        const querySnapshot = await getDocs(collection(db, 'medicaldocuments'));
+        querySnapshot.forEach((doc) => {
+            const docData = doc.data();
+            logMessage(`Fetched scribe document with ID: ${doc.id}`, 'system');
+            const documentDiv = document.createElement('div');
+            documentDiv.classList.add('document-container');
+            documentDiv.innerHTML = `
+                <h3>Document ID: ${doc.id}</h3>
+                <p><strong>Patient Name:</strong> ${docData.patientName}</p>
+                <p><strong>Date of Visit:</strong> ${new Date(docData.dateOfVisit).toLocaleDateString()}</p>
+                <p><strong>Provider Name:</strong> ${docData.providerName}</p>
+                <p><strong>Facility:</strong> ${docData.facility}</p>
+                <p><strong>Medical History:</strong> ${docData.medicalHistory.join(', ')}</p>
+                <p><strong>Allergies:</strong> ${docData.allergies.join(', ')}</p>
+                <p><strong>Diagnosis:</strong> ${docData.diagnosis.map(diag => `${diag.condition} (${diag.icdCode})`).join(', ')}</p>
+                <p><strong>Plan:</strong><pre>${docData.plan}</pre></p>
+                <p><strong>Content:</strong><pre>${docData.content}</pre></p>
+            `;
+            scribeDocsContainer.appendChild(documentDiv);
+        });
+    } catch (error) {
+        logMessage(`Error fetching scribe documents: ${error.message}`, 'system');
+        console.error('Error fetching scribe documents:', error);
     }
+}
 
 
      async function fetchDiagnosticReports() {
