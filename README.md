@@ -1,6 +1,6 @@
-# Gemini 2.0 Flash Multimodal Live API Client
+# Daisy Medical Scribe
 
-A lightweight vanilla JavaScript implementation of the Gemini 2.0 Flash Multimodal Live API client. This project provides real-time interaction with Gemini's API through text, audio, video, and screen sharing capabilities.
+A lightweight vanilla JavaScript implementation of the Daisy Medical Scribe. This project provides real-time interaction with Gemini's API through text, audio, video, and screen sharing capabilities.
 
 This is a simplified version of [Google's original React implementation](https://github.com/google-gemini/multimodal-live-api-web-console), created in response to [this issue](https://github.com/google-gemini/multimodal-live-api-web-console/issues/19).
 
